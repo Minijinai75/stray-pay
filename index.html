@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STRAY PAY — 倒數解鎖中</title>
+  <meta name="description" content="STRAY PAY 即將解鎖，敬請期待。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+TC:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f8f8fa;
+      color: #1a1a2e;
+      font-family: 'Noto Sans TC', sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── 背景流動 ── */
+    canvas#particles {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── 背景光暈 ── */
+    .glow-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(140px);
+      opacity: .2;
+      z-index: 0;
+      animation: orbFloat 10s ease-in-out infinite alternate;
+    }
+    .glow-orb.a { width: 500px; height: 500px; background: #a78bfa; top: -15%; left: -5%; }
+    .glow-orb.b { width: 450px; height: 450px; background: #38bdf8; bottom: -15%; right: -5%; animation-delay: -5s; }
+    .glow-orb.c { width: 350px; height: 350px; background: #f0abfc; top: 50%; left: 60%; animation-delay: -2.5s; }
+
+    @keyframes orbFloat {
+      to { transform: translate(50px, 30px) scale(1.2); }
+    }
+
+    /* ── 主容器 ── */
+    .container {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    /* ── 標題 ── */
+    .brand {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      letter-spacing: .15em;
+      background: linear-gradient(135deg, #1a1a2e 0%, #6366f1 50%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 25px rgba(99, 102, 241, .2));
+      animation: titlePulse 3s ease-in-out infinite;
+    }
+
+    @keyframes titlePulse {
+      0%, 100% { filter: drop-shadow(0 0 25px rgba(99, 102, 241, .2)); }
+      50% { filter: drop-shadow(0 0 45px rgba(99, 102, 241, .4)); }
+    }
+
+    .subtitle {
+      font-size: clamp(.9rem, 2.5vw, 1.3rem);
+      font-weight: 300;
+      letter-spacing: .4em;
+      color: rgba(26, 26, 46, .4);
+      margin-top: .8rem;
+      text-transform: uppercase;
+    }
+
+    /* ── 倒數區 ── */
+    .countdown {
+      display: flex;
+      gap: clamp(.8rem, 3vw, 2rem);
+      margin-top: 3rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .time-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 90px;
+    }
+
+    .time-card {
+      background: rgba(255, 255, 255, .7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(99, 102, 241, .12);
+      border-radius: 16px;
+      padding: .6rem 1.2rem;
+      box-shadow: 0 8px 32px rgba(99, 102, 241, .08),
+                  0 1px 2px rgba(0, 0, 0, .04);
+    }
+
+    .time-value {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: clamp(2.5rem, 10vw, 5rem);
+      line-height: 1;
+      color: #1a1a2e;
+      background: linear-gradient(180deg, #1a1a2e 30%, #6366f1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      transition: transform .3s cubic-bezier(.34, 1.56, .64, 1);
+    }
+
+    .time-value.flip {
+      transform: scaleY(.85);
+    }
+
+    .time-label {
+      font-size: .75rem;
+      font-weight: 500;
+      letter-spacing: .3em;
+      color: rgba(26, 26, 46, .35);
+      margin-top: .6rem;
+      text-transform: uppercase;
+    }
+
+    .separator {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2rem, 8vw, 4rem);
+      color: rgba(99, 102, 241, .3);
+      align-self: flex-start;
+      margin-top: .8rem;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: .15; }
+    }
+
+    /* ── 底部進度條 ── */
+    .progress-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #6366f1, #a78bfa, #38bdf8);
+      z-index: 2;
+      transition: width .5s ease;
+      box-shadow: 0 0 12px rgba(99, 102, 241, .3);
+    }
+
+    /* ── 細緻網格背景 ── */
+    .grid-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(99, 102, 241, .03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, .03) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* ── 倒數結束 ── */
+    .unlocked {
+      display: none;
+      animation: unlockReveal .8s ease-out forwards;
+    }
+    .unlocked.show { display: block; }
+
+    @keyframes unlockReveal {
+      from { opacity: 0; transform: scale(.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .unlocked-text {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: clamp(2rem, 6vw, 4rem);
+      background: linear-gradient(135deg, #6366f1, #a78bfa, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: .1em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glow-orb a"></div>
+  <div class="glow-orb b"></div>
+  <div class="glow-orb c"></div>
+  <canvas id="particles"></canvas>
+  <div class="grid-overlay"></div>
+
+  <div class="container">
+    <h1 class="brand">STRAY PAY</h1>
+    <p class="subtitle">倒 數 解 鎖 中</p>
+
+    <div class="countdown" id="countdown">
+      <div class="time-block">
+        <div class="time-card">
+          <span class="time-value" id="days">00</span>
+        </div>
+        <span class="time-label">DAYS</span>
+      </div>
+      <span class="separator">:</span>
+      <div class="time-block">
+        <div class="time-card">
+          <span class="time-value" id="hours">00</span>
+        </div>
+        <span class="time-label">HOURS</span>
+      </div>
+      <span class="separator">:</span>
+      <div class="time-block">
+        <div class="time-card">
+          <span class="time-value" id="minutes">00</span>
+        </div>
+        <span class="time-label">MINUTES</span>
+      </div>
+      <span class="separator">:</span>
+      <div class="time-block">
+        <div class="time-card">
+          <span class="time-value" id="seconds">00</span>
+        </div>
+        <span class="time-label">SECONDS</span>
+      </div>
+    </div>
+
+    <div class="unlocked" id="unlocked">
+      <p class="unlocked-text">🔓 已 解 鎖</p>
+    </div>
+  </div>
+
+  <div class="progress-bar" id="progressBar"></div>
+
+  <script>
+    // ── 倒數目標：2026/3/22 12:00 UTC+8 ──
+    const TARGET = new Date('2026-03-22T12:00:00+08:00').getTime();
+    const CREATED = new Date('2026-03-15T18:00:00+08:00').getTime();
+
+    const $days    = document.getElementById('days');
+    const $hours   = document.getElementById('hours');
+    const $minutes = document.getElementById('minutes');
+    const $seconds = document.getElementById('seconds');
+    const $countdown = document.getElementById('countdown');
+    const $unlocked  = document.getElementById('unlocked');
+    const $progress  = document.getElementById('progressBar');
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function animateFlip(el) {
+      el.classList.add('flip');
+      setTimeout(() => el.classList.remove('flip'), 300);
+    }
+
+    let prev = { d: -1, h: -1, m: -1, s: -1 };
+
+    function tick() {
+      const now  = Date.now();
+      const diff = TARGET - now;
+
+      if (diff <= 0) {
+        $countdown.style.display = 'none';
+        $unlocked.classList.add('show');
+        $progress.style.width = '100%';
+        return;
+      }
+
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+
+      if (d !== prev.d) { $days.textContent    = pad(d); animateFlip($days);    prev.d = d; }
+      if (h !== prev.h) { $hours.textContent   = pad(h); animateFlip($hours);   prev.h = h; }
+      if (m !== prev.m) { $minutes.textContent = pad(m); animateFlip($minutes); prev.m = m; }
+      if (s !== prev.s) { $seconds.textContent = pad(s); animateFlip($seconds); prev.s = s; }
+
+      const total   = TARGET - CREATED;
+      const elapsed = now - CREATED;
+      const pct     = Math.min((elapsed / total) * 100, 100);
+      $progress.style.width = pct + '%';
+
+      requestAnimationFrame(tick);
+    }
+
+    tick();
+
+    // ── 粒子背景 ──
+    (function () {
+      const cvs = document.getElementById('particles');
+      const ctx = cvs.getContext('2d');
+      let W, H;
+      const particles = [];
+      const COUNT = 50;
+
+      function resize() {
+        W = cvs.width  = window.innerWidth;
+        H = cvs.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      for (let i = 0; i < COUNT; i++) {
+        particles.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          r: Math.random() * 2 + .5,
+          dx: (Math.random() - .5) * .2,
+          dy: (Math.random() - .5) * .2,
+          o: Math.random() * .2 + .05
+        });
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        for (const p of particles) {
+          p.x += p.dx; p.y += p.dy;
+          if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+          if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(99, 102, 241, ${p.o})`;
+          ctx.fill();
+        }
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 140) {
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.strokeStyle = `rgba(99, 102, 241, ${.06 * (1 - dist / 140)})`;
+              ctx.lineWidth = .5;
+              ctx.stroke();
+            }
+          }
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+  </script>
+</body>
+</html>
